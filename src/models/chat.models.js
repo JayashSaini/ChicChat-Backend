@@ -1,6 +1,6 @@
-import mongoose, { Schema } from 'mongoose';
+const mongoose = require('mongoose');
 
-const chatSchema = new Schema(
+const chatSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -11,21 +11,22 @@ const chatSchema = new Schema(
       default: false,
     },
     lastMessage: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'ChatMessage',
     },
     participants: [
       {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
       },
     ],
     admin: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
   },
   { timestamps: true }
 );
 
-export const Chat = mongoose.model('Chat', chatSchema);
+const Chat = mongoose.model('Chat', chatSchema);
+module.exports = Chat;

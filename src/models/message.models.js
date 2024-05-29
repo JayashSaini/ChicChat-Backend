@@ -1,10 +1,10 @@
-import mongoose, { Schema } from 'mongoose';
+const mongoose = require('mongoose');
 
 // TODO: Add image and pdf file sharing in the next version
-const chatMessageSchema = new Schema(
+const chatMessageSchema = new mongoose.Schema(
   {
     sender: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
     content: {
@@ -20,11 +20,12 @@ const chatMessageSchema = new Schema(
       default: [],
     },
     chat: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Chat',
     },
   },
   { timestamps: true }
 );
 
-export const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema);
+const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema);
+module.exports = ChatMessage;
