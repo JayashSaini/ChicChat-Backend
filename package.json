@@ -1,0 +1,31 @@
+{
+  "name": "mysql-backend",
+  "version": "1.0.0",
+  "description": "An e-commerce platform powered by both MySQL and MongoDB backends, offering seamless transactions and efficient data management to enhance the user experience",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "dev": "npx nodemon ./src/index.js",
+    "format": "prettier --write \"src/**/*.js\""
+  },
+  "keywords": [
+    "Web Sockets",
+    "Node.js",
+    "Express.js",
+    "MongoDB"
+  ],
+  "author": "Jayash Saini",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0"
+  }
+}
