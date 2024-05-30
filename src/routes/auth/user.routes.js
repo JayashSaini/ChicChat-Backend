@@ -52,16 +52,9 @@ router
 // Secured Routes
 router.route('/logout').get(verifyJWT, userLogout);
 router.route('/self').get(verifyJWT, userSelf);
-router.route('/update-avatar').patch(
-  verifyJWT,
-  upload.fields([
-    {
-      name: 'avatar',
-      maxCount: 1,
-    },
-  ]),
-  updateAvatar
-);
+router
+  .route('/update-avatar')
+  .patch(verifyJWT, upload.single('avatar'), updateAvatar);
 
 //SSO Routes
 

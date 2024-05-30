@@ -13,6 +13,7 @@ const { ApiError } = require('../../utils/ApiError.js');
 const { ApiResponse } = require('../../utils/ApiResponse.js');
 const { asyncHandler } = require('../../utils/asyncHandler.js');
 const { uploadOnCloudinary } = require('../../utils/cloudinary.js');
+const { getLocalPath, removeLocalFile } = require('../../utils/helper.js');
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -420,20 +421,45 @@ const userSelf = asyncHandler(async (req, res) => {
 });
 
 const updateAvatar = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-  if (!user) {
-    throw new ApiError(404, 'User not found');
+  // Check if user has uploaded an avatar
+  if (!req.file?.filename) {
+    throw new ApiError(400, 'Avatar image is required');
   }
-  const base64Data = req.body.data;
 
-  data = `data:image/jpeg;base64,${base64Data}`;
+  // get avatar file system url and local path
+  const avatarLocalPath = getLocalPath(req.file?.filename);
 
-  const avatar = await uploadOnCloudinary(data);
-  user.avatar.url = avatar.url;
-  await user.save({ validateBeforeSave: false });
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  if (!avatar) {
+    throw new ApiError(400, 'Failed to upload avatar');
+  }
+  const avatarUrl = avatar.url;
+
+  const user = await User.findById(req.user._id);
+
+  let updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+
+    {
+      $set: {
+        // set the newly uploaded avatar
+        avatar: {
+          url: avatarUrl,
+          localPath: avatarLocalPath,
+        },
+      },
+    },
+    { new: true }
+  ).select(
+    '-password -refreshToken -emailVerificationToken -emailVerificationExpiry'
+  );
+
+  // remove the old avatar
+  removeLocalFile(user.avatar.localPath);
+
   return res
     .status(200)
-    .json(new ApiResponse(200, user, 'Avatar updated successfully!'));
+    .json(new ApiResponse(200, updatedUser, 'Avatar updated successfully'));
 });
 
 const handleSocialLogin = asyncHandler(async (req, res) => {

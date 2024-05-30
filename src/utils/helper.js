@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const getLocalPath = (fileName) => {
   return `public/images/${fileName}`;
 };
