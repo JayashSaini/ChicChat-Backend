@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const { ChatEventEnum } = require('../constants.js');
 const { User } = require('../models/auth/user.models.js');
-const { Chat } = require('../models/chat.models.js');
-const { ChatMessage } = require('../models/message.models.js');
+const Chat = require('../models/chat.models.js');
+const ChatMessage = require('../models/message.models.js');
 const { emitSocketEvent } = require('../socket/index.js');
 const { ApiError } = require('../utils/ApiError.js');
 const { ApiResponse } = require('../utils/ApiResponse.js');

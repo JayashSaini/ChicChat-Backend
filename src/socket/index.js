@@ -1,7 +1,6 @@
 const cookie = require('cookie');
 const jwt = require('jsonwebtoken');
-const { Server, Socket } = require('socket.io');
-const { AvailableChatEvents, ChatEventEnum } = require('../constants.js');
+const { ChatEventEnum } = require('../constants.js');
 const { User } = require('../models/auth/user.models.js');
 const { ApiError } = require('../utils/ApiError.js');
 

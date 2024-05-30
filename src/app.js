@@ -8,6 +8,7 @@ const passport = require('passport');
 const { Server } = require('socket.io');
 const http = require('http');
 const { errorHandler } = require('./middlewares/error.middlewares.js');
+const { initializeSocketIO } = require('./socket/index.js');
 
 const app = express();
 
@@ -61,6 +62,8 @@ const messageRouter = require('./routes/message.routes.js');
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/message', messageRouter);
+
+initializeSocketIO(io);
 
 // api not found
 app.use((req, res) => {
