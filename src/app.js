@@ -55,10 +55,12 @@ app.use(morgan('dev'));
 // import routers
 const userRouter = require('./routes/auth/user.routes.js');
 const chatRouter = require('./routes/chat.routes.js');
+const messageRouter = require('./routes/message.routes.js');
 
 // routes
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/chat', chatRouter);
+app.use('/api/v1/message', messageRouter);
 
 // api not found
 app.use((req, res) => {
