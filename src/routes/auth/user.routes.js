@@ -50,7 +50,7 @@ router
   );
 
 // Secured Routes
-router.route('/logout').get(verifyJWT, userLogout);
+router.route('/logout').post(verifyJWT, userLogout);
 router.route('/self').get(verifyJWT, userSelf);
 router
   .route('/update-avatar')

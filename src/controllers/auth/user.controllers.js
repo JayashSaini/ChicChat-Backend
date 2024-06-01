@@ -100,25 +100,14 @@ const userRegister = asyncHandler(async (req, res) => {
 });
 
 const userLogin = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
   const user = await User.findOne({
-    email,
+    username,
   });
 
   if (!user) {
     throw new ApiError(404, 'User does not exist');
-  }
-
-  if (user.loginType !== UserLoginType.EMAIL_PASSWORD) {
-    throw new ApiError(
-      400,
-      'You have previously registered using ' +
-        user.loginType?.toLowerCase() +
-        '. Please use the ' +
-        user.loginType?.toLowerCase() +
-        ' login option to access your account.'
-    );
   }
 
   // Compare the incoming password with hashed password

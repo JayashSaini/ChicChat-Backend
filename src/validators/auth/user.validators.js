@@ -60,12 +60,14 @@ const userRegisterValidator = () => {
 
 const userLoginValidator = () => {
   return [
-    body('email')
+    body('username')
       .trim()
       .notEmpty()
-      .withMessage('Email is required')
-      .isEmail()
-      .withMessage('Email is invalid'),
+      .withMessage('Username is required')
+      .isLowercase()
+      .withMessage('Username must be lowercase')
+      .isLength({ min: 4 })
+      .withMessage('Username must be at lease 4 characters long'),
     body('password')
       .trim()
       .notEmpty()

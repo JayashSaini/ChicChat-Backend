@@ -9,6 +9,7 @@ const { Server } = require('socket.io');
 const http = require('http');
 const { errorHandler } = require('./middlewares/error.middlewares.js');
 const { initializeSocketIO } = require('./socket/index.js');
+const { ApiResponse } = require('./utils/ApiResponse.js');
 
 const app = express();
 
