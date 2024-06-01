@@ -6,7 +6,8 @@ const { emitSocketEvent } = require('../socket/index.js');
 const { ApiError } = require('../utils/ApiError.js');
 const { ApiResponse } = require('../utils/ApiResponse.js');
 const { asyncHandler } = require('../utils/asyncHandler.js');
-const { getLocalPath, removeLocalFile } = require('../utils/helper.js');
+const { getLocalPath } = require('../utils/helper.js');
+const { uploadOnCloudinary } = require('../utils/cloudinary.js');
 
 /**
  * @description Utility function which returns the pipeline stages to structure the chat message schema with common lookups
