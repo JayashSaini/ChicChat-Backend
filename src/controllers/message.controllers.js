@@ -6,11 +6,7 @@ const { emitSocketEvent } = require('../socket/index.js');
 const { ApiError } = require('../utils/ApiError.js');
 const { ApiResponse } = require('../utils/ApiResponse.js');
 const { asyncHandler } = require('../utils/asyncHandler.js');
-const {
-  getLocalPath,
-  getStaticFilePath,
-  removeLocalFile,
-} = require('../utils/helper.js');
+const { getLocalPath, removeLocalFile } = require('../utils/helper.js');
 
 /**
  * @description Utility function which returns the pipeline stages to structure the chat message schema with common lookups
@@ -95,10 +91,17 @@ const sendMessage = asyncHandler(async (req, res) => {
   const messageFiles = [];
 
   if (req.files && req.files.attachments?.length > 0) {
-    req.files.attachments?.map((attachment) => {
+    req.files.attachments?.map(async (attachment) => {
+      // store the attachment in the cloudinary
+      const localPath = getLocalPath(attachment.filename);
+      const uplodedAttachment = await uploadOnCloudinary(localPath);
+
+      if (!uplodedAttachment) {
+        throw new ApiError(500, 'Error uploading file to cloud');
+      }
       messageFiles.push({
-        url: getStaticFilePath(req, attachment.filename),
-        localPath: getLocalPath(attachment.filename),
+        url: uplodedAttachment.url,
+        localPath,
       });
     });
   }
@@ -190,12 +193,7 @@ const deleteMessage = asyncHandler(async (req, res) => {
       'You are not the authorised to delete the message, you are not the sender'
     );
   }
-  if (message.attachments.length > 0) {
-    //If the message is attachment  remove the attachments from the server
-    message.attachments.map((asset) => {
-      removeLocalFile(asset.localPath);
-    });
-  }
+
   //deleting the message from DB
   await ChatMessage.deleteOne({
     _id: new mongoose.Types.ObjectId(messageId),
