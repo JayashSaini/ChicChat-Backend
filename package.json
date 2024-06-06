@@ -4,6 +4,7 @@
   "description": "An e-commerce platform powered by both MySQL and MongoDB backends, offering seamless transactions and efficient data management to enhance the user experience",
   "main": "index.js",
   "scripts": {
+    "build": "npm install",
     "start": "node ./src/index.js",
     "dev": "npx nodemon ./src/index.js",
     "format": "prettier --write \"src/**/*.js\""
