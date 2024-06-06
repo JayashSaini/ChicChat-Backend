@@ -20,8 +20,18 @@ v2.config({
 async function uploadOnCloudinary(localPath) {
   try {
     if (!localPath) return null;
-    const response = await v2.uploader.upload(localPath);
-
+    const response = await v2.uploader.upload(localPath, {
+      resource_type: 'auto',
+      eager: [
+        {
+          width: 200,
+          height: 200,
+          crop: 'limit',
+        },
+      ],
+      eager_async: true,
+      invalidate: true,
+    });
     removeLocalFile(localPath);
     return response;
   } catch (error) {
@@ -37,7 +47,7 @@ const deleteImageOnCloudinary = async (publicId) => {
       return null;
     }
     let response = await v2.uploader.destroy(publicId, {
-      resource_type: 'image',
+      resource_type: 'any',
     });
     return response;
   } catch (error) {
