@@ -89,22 +89,24 @@ const sendMessage = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Chat does not exist');
   }
 
-  const messageFiles = [];
-
+  let messageFiles = [];
   if (req.files && req.files.attachments?.length > 0) {
-    req.files.attachments?.map(async (attachment) => {
-      // store the attachment in the cloudinary
-      const localPath = getLocalPath(attachment.filename);
-      const uplodedAttachment = await uploadOnCloudinary(localPath);
+    // Use Promise.all to handle async operations inside map
+    messageFiles = await Promise.all(
+      req.files.attachments.map(async (attachment) => {
+        const localPath = getLocalPath(attachment.filename);
+        const uploadedAttachment = await uploadOnCloudinary(localPath);
 
-      if (!uplodedAttachment) {
-        throw new ApiError(500, 'Error uploading file to cloud');
-      }
-      messageFiles.push({
-        url: uplodedAttachment.url,
-        localPath,
-      });
-    });
+        if (!uploadedAttachment) {
+          throw new ApiError(500, 'Error uploading file to cloud');
+        }
+
+        return {
+          url: uploadedAttachment.url,
+          localPath,
+        };
+      })
+    );
   }
 
   // Create a new message instance with appropriate metadata
@@ -115,41 +117,30 @@ const sendMessage = asyncHandler(async (req, res) => {
     attachments: messageFiles,
   });
 
-  // update the chat's last message which could be utilized to show last message in the list item
+  // Update the chat's last message
   const chat = await Chat.findByIdAndUpdate(
     chatId,
     {
-      $set: {
-        lastMessage: message._id,
-      },
+      $set: { lastMessage: message._id },
     },
     { new: true }
   );
 
-  // structure the message
+  // Structure the message
   const messages = await ChatMessage.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(message._id),
-      },
-    },
+    { $match: { _id: new mongoose.Types.ObjectId(message._id) } },
     ...chatMessageCommonAggregation(),
   ]);
-
-  // Store the aggregation result
   const receivedMessage = messages[0];
 
   if (!receivedMessage) {
     throw new ApiError(500, 'Internal server error');
   }
 
-  // logic to emit socket event about the new message created to the other participants
+  // Emit socket event for the new message
   chat.participants.forEach((participantObjectId) => {
-    // here the chat is the raw instance of the chat in which participants is the array of object ids of users
-    // avoid emitting event to the user who is sending the message
     if (participantObjectId.toString() === req.user._id.toString()) return;
 
-    // emit the receive message event to the other participants with received message as the payload
     emitSocketEvent(
       req,
       participantObjectId.toString(),

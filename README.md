@@ -1,8 +1,8 @@
-# ChatApp Backend
+# ChicChat Backend
 
-🚀 Real-time chat app backend powered by Socket.IO. Features include seamless communication, low latency, efficient message delivery, and robust connection management. Perfect for instant messaging applications. 💬✨
+🚀 Real-time chat and streaming app backend powered by Web Sockets. Features include seamless communication, low latency, efficient message delivery, and robust connection management. Perfect for instant messaging applications. 💬✨
 
-- Frontend repository: [Chat App Frontend](https://github.com/JayashSaini/ChatApp-Frontend)
+- ChicChat Frontend repository: [Chat App Frontend](https://github.com/JayashSaini/ChicChat-Frontend)
 
 ## 🏁 Installation
 

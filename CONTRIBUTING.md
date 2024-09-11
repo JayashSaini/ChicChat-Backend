@@ -1,4 +1,4 @@
-# Contributing guide for Quick Spares Backend
+# Contributing guide for Chic Chat Backend
 
 ## How to contribute
 
