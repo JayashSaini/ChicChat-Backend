@@ -36,8 +36,10 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 const options = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  maxAge: 24 * 60 * 60 * 1000 * 7, // Cookie will expire after 7 day
+  httpOnly: true, // Cookie is only accessible via HTTP(S) and not client-side JavaScript
+  secure: process.env.NODE_ENV === 'production', // Cookie will only be sent over HTTPS if in production
+  sameSite: 'strict', // SameSite attribute to prevent CSRF attacks
 };
 
 function generateOtp() {
@@ -125,7 +127,6 @@ const userLogin = asyncHandler(async (req, res) => {
   const loggedInUser = await User.findById(user._id).select(
     '-password -refreshToken -emailVerificationToken -emailVerificationExpiry'
   );
-
   // TODO: Add more options to make cookie more secure and reliable
 
   return res
