@@ -57,47 +57,12 @@ const userRegister = asyncHandler(async (req, res) => {
     email,
     password,
     username,
-    isEmailVerified: false,
-    role: role || UserRolesEnum.USER,
-    loginType: UserLoginType.EMAIL_PASSWORD,
   });
-
-  const { unHashedToken, hashedToken, tokenExpiry } =
-    user.generateTemporaryToken();
-
-  /**
-   * assign hashedToken and tokenExpiry in DB till user clicks on email verification link
-   * The email verification is handled by {@link verifyEmail}
-   */
-  user.emailVerificationToken = hashedToken;
-  user.emailVerificationExpiry = tokenExpiry;
-  await user.save({ validateBeforeSave: false });
-
-  await sendEmail({
-    email: user?.email,
-    subject: 'Please verify your email',
-    mailgenContent: emailVerificationMailgenContent(
-      user?.username || 'Buddy',
-      `${process.env.CLIENT_URI}/email-verification/${unHashedToken}`
-    ),
-  });
-
-  const createdUser = await User.findById(user._id).select(
-    '-password -refreshToken -emailVerificationToken -emailVerificationExpiry'
-  );
-
-  if (!createdUser) {
-    throw new ApiError(500, 'Something went wrong while registering the user');
-  }
 
   return res
     .status(201)
     .json(
-      new ApiResponse(
-        200,
-        { user: createdUser },
-        'Users registered successfully'
-      )
+      new ApiResponse(200, { user: user }, 'Users registered successfully')
     );
 });
 
@@ -125,7 +90,7 @@ const userLogin = asyncHandler(async (req, res) => {
 
   // get the user document ignoring the password and refreshToken field
   const loggedInUser = await User.findById(user._id).select(
-    '-password -refreshToken -emailVerificationToken -emailVerificationExpiry'
+    '-password -refreshToken'
   );
   // TODO: Add more options to make cookie more secure and reliable
 

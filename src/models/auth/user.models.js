@@ -3,24 +3,18 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const {
-  UserRolesEnum,
-  AvailableUserRoles,
-  UserLoginType,
-  AvailableSocialLogins,
-  USER_TEMPORARY_TOKEN_EXPIRY,
-} = require('../../constants.js');
+const { USER_TEMPORARY_TOKEN_EXPIRY } = require('../../constants.js');
 
 const userSchema = new mongoose.Schema(
   {
     avatar: {
       type: {
         url: String,
-        localPath: String,
+        public_id: String,
       },
       default: {
         url: `https://res.cloudinary.com/dcvb5vgyf/image/upload/c_scale,h_500,w_500/oysy3d5lzxjzjp8am3bi.jpg`,
-        localPath: '',
+        public_id: '',
       },
     },
     username: {
@@ -37,39 +31,12 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    role: {
-      type: String,
-      enum: AvailableUserRoles,
-      default: UserRolesEnum.USER,
-      required: true,
-    },
     password: {
       type: String,
       required: [true, 'Password is required'],
     },
-    loginType: {
-      type: String,
-      enum: AvailableSocialLogins,
-      default: UserLoginType.EMAIL_PASSWORD,
-    },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
     refreshToken: {
       type: String,
-    },
-    forgotPasswordToken: {
-      type: String,
-    },
-    forgotPasswordExpiry: {
-      type: Date,
-    },
-    emailVerificationToken: {
-      type: String,
-    },
-    emailVerificationExpiry: {
-      type: Date,
     },
   },
   { timestamps: true }
