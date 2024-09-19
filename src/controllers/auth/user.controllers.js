@@ -389,10 +389,9 @@ const updateAvatar = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Failed to upload avatar');
   }
   const avatarUrl = avatar.url;
+  const avatarPublicId = avatar.public_id;
 
-  const user = await User.findById(req.user._id);
-
-  let updatedUser = await User.findByIdAndUpdate(
+  const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
 
     {
@@ -400,17 +399,12 @@ const updateAvatar = asyncHandler(async (req, res) => {
         // set the newly uploaded avatar
         avatar: {
           url: avatarUrl,
-          localPath: avatarLocalPath,
+          public_id: avatarPublicId,
         },
       },
     },
     { new: true }
-  ).select(
-    '-password -refreshToken -emailVerificationToken -emailVerificationExpiry'
-  );
-
-  // remove the old avatar
-  removeLocalFile(user.avatar.localPath);
+  ).select('-password -refreshToken ');
 
   return res
     .status(200)

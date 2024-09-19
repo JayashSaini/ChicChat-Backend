@@ -59,12 +59,14 @@ const userRouter = require('./routes/auth/user.routes.js');
 const chatRouter = require('./routes/chat.routes.js');
 const messageRouter = require('./routes/message.routes.js');
 const roomRouter = require('./routes/room.routes.js');
+const profileRouter = require('./routes/profile.routes.js');
 
 // routes
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/message', messageRouter);
 app.use('/api/v1/rooms', roomRouter);
+app.use('/api/v1/profile', profileRouter);
 
 initializeSocketIO(io);
 
