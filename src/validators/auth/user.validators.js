@@ -1,6 +1,5 @@
 const { body } = require('express-validator');
 const { User } = require('../../models/auth/user.models.js');
-const { Availables } = require('../../constants.js');
 
 const userRegisterValidator = () => {
   return [

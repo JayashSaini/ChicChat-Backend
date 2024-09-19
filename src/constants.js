@@ -18,6 +18,13 @@ const USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
 const USER_OTP_EXPIRY = 2;
 
 const ChatEventEnum = Object.freeze({
+  // ? when send a join room request
+  JOIN_ROOM_OFFER: 'joinRoomOffer',
+
+  ADMIN_JOIN_REQUEST_EVENT: 'adminJoinRequestEvent',
+
+  USER_JOINED: 'userJoined',
+
   // ? once user is ready to go
   CONNECTED_EVENT: 'connected',
   // ? when user gets disconnected
@@ -44,6 +51,8 @@ const ChatEventEnum = Object.freeze({
 
 const AvailableChatEvents = Object.values(ChatEventEnum);
 
+const RoomLinkFormat = 'chicchat.com/room/join=';
+
 module.exports = {
   DB_NAME,
   UserRolesEnum,
@@ -54,4 +63,5 @@ module.exports = {
   USER_OTP_EXPIRY,
   ChatEventEnum,
   AvailableChatEvents,
+  RoomLinkFormat,
 };

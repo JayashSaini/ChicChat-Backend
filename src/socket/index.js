@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { ChatEventEnum } = require('../constants.js');
 const { User } = require('../models/auth/user.models.js');
 const { ApiError } = require('../utils/ApiError.js');
+const Room = require('../models/room.models.js');
 
 const mountJoinChatEvent = (socket) => {
   socket.on(ChatEventEnum.JOIN_CHAT_EVENT, (chatId) => {
@@ -23,53 +24,106 @@ const mountParticipantStoppedTypingEvent = (socket) => {
   });
 };
 
+// Video Calling Events (for multiple participants)
+const mountVideoCallEvents = (socket, io) => {
+  // Ask admin to join the room
+  socket.on('admin:join-request', async (data) => {
+    const { user, roomId } = data;
+
+    try {
+      const room = await Room.findOne({ roomId });
+
+      if (room?.admin) {
+        io.to(room.admin.toString()).emit('admin:user-approve', {
+          user,
+        });
+      } else {
+        socket.emit('error', { message: 'Room or admin not found' });
+      }
+    } catch (error) {
+      socket.emit('error', { message: 'Error fetching room data', error });
+    }
+  });
+
+  // Handle admin's approval of user joining the room
+  socket.on('admin:approve-user', async (data) => {
+    const { roomId, userId } = data;
+
+    try {
+      const room = await Room.findOneAndUpdate(
+        { roomId },
+        { $addToSet: { participants: userId.toString() } }, // Ensure userId is added to participants
+        { new: true }
+      );
+
+      if (room) {
+        // Notify the approved user
+        io.to(userId).emit('room:join:approved', { roomId });
+
+        // Notify all participants in the room that the user has joined
+        io.to(roomId).emit('user:joined', { userId });
+
+        // Add the approved user (whose socket ID is userId) to the room
+        const userSocket = io.sockets.sockets.get(userId);
+        if (userSocket) {
+          userSocket.join(roomId);
+        } else {
+          socket.emit('error', { message: 'User is not connected' });
+        }
+      } else {
+        socket.emit('error', { message: 'Room not found' });
+      }
+    } catch (error) {
+      socket.emit('error', { message: 'Error updating room data', error });
+    }
+  });
+
+  // Handle rejection of user's join request
+  socket.on('admin:reject-user', ({ userId }) => {
+    // Notify the rejected user
+    io.to(userId).emit('room:join:rejected', {
+      message: 'Your request to join the room was rejected by the admin.',
+    });
+  });
+};
+
 const initializeSocketIO = (io) => {
   return io.on('connection', async (socket) => {
     try {
-      // parse the cookies from the handshake headers (This is only possible if client has `withCredentials: true`)
+      // Parse the cookies from the handshake headers
       const cookies = cookie.parse(socket.handshake.headers?.cookie || '');
+      let token = cookies?.accessToken || socket.handshake.auth?.token;
 
-      let token = cookies?.accessToken; // get the accessToken
+      if (!token)
+        throw new ApiError(401, 'Unauthorized handshake. Token is missing');
 
-      if (!token) {
-        // If there is no access token in cookies. Check inside the handshake auth
-        token = socket.handshake.auth?.token;
-      }
-
-      if (!token) {
-        // Token is required for the socket to work
-        throw new ApiError(401, 'Un-authorized handshake. Token is missing');
-      }
-
-      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET); // decode the token
-
+      const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
       const user = await User.findById(decodedToken?._id).select(
-        '-password -refreshToken -emailVerificationToken -emailVerificationExpiry'
+        '-password -refreshToken'
       );
 
-      // retrieve the user
-      if (!user) {
-        throw new ApiError(401, 'Un-authorized handshake. Token is invalid');
-      }
-      socket.user = user; // mount te user object to the socket
+      if (!user)
+        throw new ApiError(401, 'Unauthorized handshake. Invalid token');
 
-      // We are creating a room with user id so that if user is joined but does not have any active chat going on.
-      // still we want to emit some socket events to the user.
-      // so that the client can catch the event and show the notifications.
-      socket.join(user._id.toString());
-      socket.emit(ChatEventEnum.CONNECTED_EVENT); // emit the connected event so that client is aware
+      socket.user = user;
+
+      socket.join(user._id.toString()); // Create a room for the user
+
+      socket.emit(ChatEventEnum.CONNECTED_EVENT); // Notify client of successful connection
+
       console.log('User connected 🗼. userId: ', user._id.toString());
 
-      // Common events that needs to be mounted on the initialization
+      // Mount common chat-related events
       mountJoinChatEvent(socket);
       mountParticipantTypingEvent(socket);
       mountParticipantStoppedTypingEvent(socket);
 
+      // Mount video calling events
+      mountVideoCallEvents(socket, io);
+
       socket.on(ChatEventEnum.DISCONNECT_EVENT, () => {
-        console.log('user has disconnected 🚫. userId: ' + socket.user?._id);
-        if (socket.user?._id) {
-          socket.leave(socket.user._id);
-        }
+        console.log('User disconnected 🚫. userId: ' + socket.user?._id);
+        socket.leave(socket.user._id);
       });
     } catch (error) {
       socket.emit(
@@ -80,6 +134,7 @@ const initializeSocketIO = (io) => {
   });
 };
 
+// Utility function to emit events to a specific room (chat)
 const emitSocketEvent = (req, roomId, event, payload) => {
   req.app.get('io').in(roomId).emit(event, payload);
 };

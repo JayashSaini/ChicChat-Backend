@@ -9,7 +9,7 @@ const connectDB = require('./db/index.js');
   await connectDB();
 
   // start http server
-  httpServer.listen(process.env.PORT, () => {
+  httpServer.listen(process.env.PORT, '0.0.0.0', () => {
     console.log(`🚝 Server is running on port ${process.env.PORT}`);
   });
 })();
